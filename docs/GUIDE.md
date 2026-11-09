@@ -226,3 +226,15 @@ reach. Write 30 to 50 questions for your real handbook before trusting a score.
 
 **Try this:** `python manage.py evaluate_answers` checks answers, page citations
 and refusals on the sample. It makes 21 paid API calls.
+
+## Step 9: Roles, collections and versions
+
+- A **Collection** groups documents with one audience. An empty `allowed_groups`
+  means every signed-in user can see it. Otherwise only those groups can.
+- **Roles:** staff use the admin (`is_staff`). Students are ordinary users, and
+  Django **Groups** decide which restricted collections they can read.
+- `visible_to` is a custom `QuerySet` method, so access rules live in one place.
+- **Replacing a document:** upload the new PDF and set **Replaces** to the old
+  one. `searchable_chunks` drops the old version only when the new one is
+  `ready`, so there is no gap, and deleting the new one restores the old one.
+  This is worked out by a query, so no extra flag can get out of sync.

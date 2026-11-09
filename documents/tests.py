@@ -7,7 +7,7 @@ from django.db import connection
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from .models import Document
+from .models import Document, get_default_collection
 from .validators import MAX_PDF_SIZE_BYTES, validate_pdf
 
 
@@ -55,6 +55,7 @@ class AdminUploadTests(TestCase):
             self.url,
             {
                 "title": "Handbook",
+                "collection": get_default_collection(),
                 "file": SimpleUploadedFile(name, content),
                 "pages-TOTAL_FORMS": "0",
                 "pages-INITIAL_FORMS": "0",

@@ -14,7 +14,7 @@ NOT_FOUND_MESSAGE = (
     "I could not find this in the university documents. "
     "Please contact the Registrar's Office."
 )
-ERROR_MESSAGE = "Sorry, I could not answer that just now. Please try again in a moment."
+ERROR_MESSAGE = "The answer could not be generated. Try asking again in a moment."
 
 
 @dataclass

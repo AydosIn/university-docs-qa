@@ -1,11 +1,52 @@
+from django.contrib.auth.models import Group
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.db.models import Q
 from pgvector.django import HnswIndex, VectorField
 
 from .embeddings import EMBEDDING_DIMENSIONS
 from .validators import validate_pdf
+
+
+class CollectionQuerySet(models.QuerySet):
+    def open_to_all(self):
+        return self.filter(allowed_groups__isnull=True)
+
+    def visible_to(self, user):
+        if user.is_staff:
+            return self
+        if not user.is_authenticated:
+            return self.none()
+        return self.filter(
+            Q(allowed_groups__isnull=True) | Q(allowed_groups__in=user.groups.all())
+        ).distinct()
+
+
+class Collection(models.Model):
+    """A set of documents with the same audience, such as "Medical Faculty"."""
+
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+    allowed_groups = models.ManyToManyField(
+        Group,
+        blank=True,
+        help_text="Leave empty to let every signed-in user see this collection.",
+    )
+
+    objects = CollectionQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+def get_default_collection():
+    return Collection.objects.get_or_create(name="General")[0].pk
 
 
 class Document(models.Model):
@@ -18,6 +59,20 @@ class Document(models.Model):
         FAILED = "failed", "Failed"
 
     title = models.CharField(max_length=255)
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.PROTECT,
+        related_name="documents",
+        default=get_default_collection,
+    )
+    replaces = models.OneToOneField(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="replaced_by",
+        help_text="The older document this one replaces, once this one is ready.",
+    )
     file = models.FileField(
         upload_to="documents/%Y/%m/",
         validators=[FileExtensionValidator(["pdf"]), validate_pdf],
@@ -39,6 +94,14 @@ class Document(models.Model):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        if self.replaces_id is None:
+            return
+        if self.replaces_id == self.pk:
+            raise ValidationError({"replaces": "A document cannot replace itself."})
+        if self.replaces.collection_id != self.collection_id:
+            raise ValidationError({"replaces": "Choose a document from the same collection."})
 
 
 class Page(models.Model):

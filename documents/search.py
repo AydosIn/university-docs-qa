@@ -20,11 +20,19 @@ RRF_K = 60
 
 
 def searchable_chunks():
-    """Chunks that are allowed to appear in answers."""
+    """Chunks that are allowed to appear in answers.
+
+    An old document stays in use until its replacement is ready, so students
+    are never left without an answer while a new version is being processed.
+    """
     return Chunk.objects.filter(
         document__status=Document.Status.READY,
         embedding__isnull=False,
-    )
+    ).exclude(document__replaced_by__status=Document.Status.READY)
+
+
+def chunks_in(collections):
+    return searchable_chunks().filter(document__collection__in=collections)
 
 
 def _vector_ranking(query, chunks):

@@ -13,7 +13,7 @@ from django.utils import timezone
 from fpdf import FPDF
 
 from .embeddings import EMBEDDING_DIMENSIONS
-from .models import Document
+from .models import Document, get_default_collection
 from .services import (
     MAX_ATTEMPTS,
     STALE_AFTER,
@@ -209,6 +209,7 @@ class WorkerAndAdminTests(TestCase):
             reverse("admin:documents_document_add"),
             {
                 "title": "Handbook",
+                "collection": get_default_collection(),
                 "file": SimpleUploadedFile("handbook.pdf", make_pdf("Attendance rules")),
                 "pages-TOTAL_FORMS": "0",
                 "pages-INITIAL_FORMS": "0",
