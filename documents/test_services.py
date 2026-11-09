@@ -65,13 +65,24 @@ class ProcessDocumentTests(TestCase):
             [(1, "First"), (2, "Second")],
         )
 
-    def test_processing_twice_does_not_duplicate_pages(self):
+    def test_success_stores_chunks_with_page_numbers(self):
+        document = self.make_document(make_pdf("First", "Second"))
+
+        process_document(document)
+
+        self.assertEqual(
+            list(document.chunks.values_list("position", "page_number", "text")),
+            [(0, 1, "First"), (1, 2, "Second")],
+        )
+
+    def test_processing_twice_does_not_duplicate_pages_or_chunks(self):
         document = self.make_document(make_pdf("First", "Second"))
 
         process_document(document)
         process_document(document)
 
         self.assertEqual(document.pages.count(), 2)
+        self.assertEqual(document.chunks.count(), 2)
 
     def test_failure_records_message_and_removes_old_pages(self):
         document = self.make_document(make_pdf("Old text"))

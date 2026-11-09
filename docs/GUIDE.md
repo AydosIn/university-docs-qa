@@ -114,3 +114,18 @@ document.pages.get(number=4).text
 ```
 
 You should see the grading rules on page 4.
+
+## Step 3: Split pages into chunks
+
+**What the pieces do**
+
+- `documents/chunking.py` holds plain Python with no database code, so it is
+  quick to test. Each chunk has at most 900 characters.
+- Neighbouring chunks share up to 150 characters, so a rule near a boundary is
+  still found.
+- Chunks never cross a page boundary. That is what keeps every citation exact.
+- The nearest heading is stored as `section` and later added to the search text,
+  so a chunk saying "at least 75 percent" still connects to "Attendance".
+
+**Try this:** change `MAX_CHUNK_CHARS` to 200 and run `python manage.py test`.
+Read which tests fail and why, then change it back.

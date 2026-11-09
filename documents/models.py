@@ -57,3 +57,29 @@ class Page(models.Model):
 
     def __str__(self):
         return f"{self.document} (page {self.number})"
+
+
+class Chunk(models.Model):
+    """A small passage of a page. Search finds chunks, not whole documents."""
+
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="chunks",
+    )
+    page_number = models.PositiveIntegerField()
+    position = models.PositiveIntegerField(help_text="Order within the document.")
+    section = models.CharField(max_length=255, blank=True)
+    text = models.TextField()
+
+    class Meta:
+        ordering = ["document", "position"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["document", "position"],
+                name="unique_chunk_position_per_document",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.document} (page {self.page_number}, chunk {self.position})"

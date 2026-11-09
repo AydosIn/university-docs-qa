@@ -5,7 +5,8 @@ import logging
 import pypdfium2 as pdfium
 from django.db import transaction
 
-from .models import Document, Page
+from .chunking import build_chunks
+from .models import Chunk, Document, Page
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +57,20 @@ def process_document(document):
         # All or nothing: readers never see a half-replaced set of pages.
         with transaction.atomic():
             document.pages.all().delete()
+            document.chunks.all().delete()
             Page.objects.bulk_create(
                 Page(document=document, number=number, text=text)
                 for number, text in enumerate(texts, start=1)
+            )
+            Chunk.objects.bulk_create(
+                Chunk(
+                    document=document,
+                    page_number=draft.page_number,
+                    position=position,
+                    section=draft.section[:255],
+                    text=draft.text,
+                )
+                for position, draft in enumerate(build_chunks(texts))
             )
             document.status = Document.Status.READY
             document.page_count = len(texts)
@@ -74,6 +86,7 @@ def _mark_failed(document, message):
     # Pages from an earlier version must not be used to answer questions.
     with transaction.atomic():
         document.pages.all().delete()
+        document.chunks.all().delete()
         document.status = Document.Status.FAILED
         document.error_message = message
         document.page_count = None
