@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase, TestCase
 
 from .embeddings import EMBEDDING_DIMENSIONS
+from .management.commands.evaluate_retrieval import score_ranks
 from .models import Chunk, Document
 from .search import _fuse, search_chunks
 
@@ -22,6 +23,13 @@ def make_chunk(document, position, text, embedding):
         text=text,
         embedding=embedding,
     )
+
+
+class ScoreRanksTests(SimpleTestCase):
+    def test_counts_hits_and_reciprocal_ranks(self):
+        hit_rate, mrr = score_ranks([1, 2, None, None], k=5)
+        self.assertEqual(hit_rate, 0.5)
+        self.assertEqual(mrr, 0.375)
 
 
 class FuseTests(SimpleTestCase):

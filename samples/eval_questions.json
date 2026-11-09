@@ -1,0 +1,28 @@
+{
+  "document_title": "Sample Handbook",
+  "answerable": [
+    {"question": "How many classes am I allowed to skip?", "page": 2},
+    {"question": "What attendance percentage do I need?", "page": 2},
+    {"question": "Who do I give my doctor's note to?", "page": 2},
+    {"question": "What happens if I miss an exam?", "page": 3},
+    {"question": "How long do I have to request a makeup exam after missing it?", "page": 3},
+    {"question": "Which months are finals held in?", "page": 3},
+    {"question": "What is the lowest score that still passes?", "page": 4},
+    {"question": "What score range gets me a B?", "page": 4},
+    {"question": "How much is the final exam worth?", "page": 4},
+    {"question": "When is the final assignment due?", "page": 5},
+    {"question": "What is the penalty for handing in work late?", "page": 5},
+    {"question": "How long do I have to contest my grade?", "page": 6},
+    {"question": "Who should I send a grade appeal to?", "page": 6},
+    {"question": "When did this handbook take effect?", "page": 1},
+    {"question": "Necha marta darsga kelmaslik mumkin?", "page": 2},
+    {"question": "O'tish uchun eng past baho qancha?", "page": 4},
+    {"question": "Что будет, если я пропущу экзамен?", "page": 3},
+    {"question": "Когда нужно сдать итоговое задание?", "page": 5}
+  ],
+  "unanswerable": [
+    "Is parking free on campus?",
+    "What time does the library open on Sundays?",
+    "How much is the tuition fee?"
+  ]
+}

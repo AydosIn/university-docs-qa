@@ -190,3 +190,19 @@ from documents.search import search_chunks
 for c in search_chunks("How many classes can I skip?"):
     print(c.page_number, c.text[:60])
 ```
+
+## Step 7: Measure retrieval quality
+
+`samples/eval_questions.json` holds test questions and the page that answers each
+one. Upload `samples/sample_handbook.pdf` with the title `Sample Handbook`, then:
+
+```bash
+python manage.py evaluate_retrieval
+```
+
+- **Hit rate in top 5:** how often the right page is among the first 5 results.
+- **Mean reciprocal rank:** 1.0 means the right page always came first.
+
+Result on the sample: 100% hit rate, 0.84 mean reciprocal rank, and 72% with the
+right page first. The sample has only 6 chunks, so the top-5 figure is easy to
+reach. Write 30 to 50 questions for your real handbook before trusting a score.
