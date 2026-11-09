@@ -206,3 +206,23 @@ python manage.py evaluate_retrieval
 Result on the sample: 100% hit rate, 0.84 mean reciprocal rank, and 72% with the
 right page first. The sample has only 6 chunks, so the top-5 figure is easy to
 reach. Write 30 to 50 questions for your real handbook before trusting a score.
+
+## Step 8: Generate answers with citations
+
+**Setup:** add `ANTHROPIC_API_KEY=...` to `.env`. Each question costs a small amount.
+
+**What the pieces do**
+
+- `assistant/llm.py` is the only file that talks to the model. To change
+  provider, change this file.
+- `GeneratedAnswer` is a schema. The API returns exactly `found`, `answer` and
+  `citations`, so nothing has to be parsed out of free text.
+- The model cites passage numbers, never page numbers. Our code converts them
+  to pages, so the model cannot invent a page.
+- `find_answer` refuses to show an answer without a valid citation.
+- `Citation` copies the title, page and excerpt, because chunks are replaced
+  whenever a document is processed again.
+- Each question stands alone. Follow-up questions do not remember earlier ones.
+
+**Try this:** `python manage.py evaluate_answers` checks answers, page citations
+and refusals on the sample. It makes 21 paid API calls.
