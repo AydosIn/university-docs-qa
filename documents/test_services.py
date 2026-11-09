@@ -1,4 +1,5 @@
 import tempfile
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
@@ -7,8 +8,14 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from fpdf import FPDF
 
+from .embeddings import EMBEDDING_DIMENSIONS
 from .models import Document
 from .services import ExtractionError, clean_text, extract_pages, process_document
+
+
+def fake_embed_passages(texts):
+    """Stands in for the real model, which is too slow for unit tests."""
+    return [[1.0] + [0.0] * (EMBEDDING_DIMENSIONS - 1) for _ in texts]
 
 
 def make_pdf(*page_texts):
@@ -45,6 +52,7 @@ class ExtractPagesTests(SimpleTestCase):
             extract_pages(make_pdf("", ""))
 
 
+@patch("documents.services.embed_passages", fake_embed_passages)
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class ProcessDocumentTests(TestCase):
     def make_document(self, pdf_bytes):
@@ -75,6 +83,13 @@ class ProcessDocumentTests(TestCase):
             [(0, 1, "First"), (1, 2, "Second")],
         )
 
+    def test_chunks_store_embeddings(self):
+        document = self.make_document(make_pdf("First"))
+
+        process_document(document)
+
+        self.assertEqual(len(document.chunks.get().embedding), EMBEDDING_DIMENSIONS)
+
     def test_processing_twice_does_not_duplicate_pages_or_chunks(self):
         document = self.make_document(make_pdf("First", "Second"))
 
@@ -98,6 +113,7 @@ class ProcessDocumentTests(TestCase):
         self.assertEqual(document.pages.count(), 0)
 
 
+@patch("documents.services.embed_passages", fake_embed_passages)
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class AdminProcessingTests(TestCase):
     def setUp(self):

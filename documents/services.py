@@ -6,6 +6,7 @@ import pypdfium2 as pdfium
 from django.db import transaction
 
 from .chunking import build_chunks
+from .embeddings import embed_passages
 from .models import Chunk, Document, Page
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,13 @@ def process_document(document):
         with document.file.open("rb") as file:
             texts = extract_pages(file.read())
 
+        drafts = build_chunks(texts)
+        # Slow, so it runs before the transaction opens. The section is
+        # included so that a chunk is found by its topic as well as its words.
+        embeddings = embed_passages(
+            [f"{draft.section}\n{draft.text}".strip() for draft in drafts]
+        )
+
         # All or nothing: readers never see a half-replaced set of pages.
         with transaction.atomic():
             document.pages.all().delete()
@@ -69,8 +77,9 @@ def process_document(document):
                     position=position,
                     section=draft.section[:255],
                     text=draft.text,
+                    embedding=embedding,
                 )
-                for position, draft in enumerate(build_chunks(texts))
+                for position, (draft, embedding) in enumerate(zip(drafts, embeddings))
             )
             document.status = Document.Status.READY
             document.page_count = len(texts)

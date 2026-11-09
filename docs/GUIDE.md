@@ -129,3 +129,20 @@ You should see the grading rules on page 4.
 
 **Try this:** change `MAX_CHUNK_CHARS` to 200 and run `python manage.py test`.
 Read which tests fail and why, then change it back.
+
+## Step 4: Create and store embeddings
+
+**What the pieces do**
+
+- `documents/embeddings.py` runs `multilingual-e5-small` on your own computer. It
+  is free, and uploaded documents never leave the machine for this step. The
+  first use downloads the model (a few hundred MB).
+- `VectorField(dimensions=384)` stores one embedding per chunk. The dimension
+  must match the model exactly.
+- `HnswIndex` is like a book's index for meanings. Without it, every search
+  would compare the question against every chunk.
+- Embedding happens before `transaction.atomic()` because a database transaction
+  should not stay open during slow work.
+
+Documents processed before this step have no embeddings. Select them in the
+admin and run **Process selected documents again**.

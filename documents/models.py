@@ -1,6 +1,8 @@
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from pgvector.django import HnswIndex, VectorField
 
+from .embeddings import EMBEDDING_DIMENSIONS
 from .validators import validate_pdf
 
 
@@ -71,6 +73,7 @@ class Chunk(models.Model):
     position = models.PositiveIntegerField(help_text="Order within the document.")
     section = models.CharField(max_length=255, blank=True)
     text = models.TextField()
+    embedding = VectorField(dimensions=EMBEDDING_DIMENSIONS, null=True, blank=True)
 
     class Meta:
         ordering = ["document", "position"]
@@ -78,6 +81,16 @@ class Chunk(models.Model):
             models.UniqueConstraint(
                 fields=["document", "position"],
                 name="unique_chunk_position_per_document",
+            ),
+        ]
+        indexes = [
+            # Finds the closest embeddings without comparing against every row.
+            HnswIndex(
+                name="chunk_embedding_hnsw",
+                fields=["embedding"],
+                m=16,
+                ef_construction=64,
+                opclasses=["vector_cosine_ops"],
             ),
         ]
 
