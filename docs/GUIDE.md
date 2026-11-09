@@ -72,3 +72,45 @@ Open <http://127.0.0.1:8000/admin/> and upload a PDF under **Documents**.
 
 **Try this:** rename a `.txt` file to `.pdf` and upload it. Django should reject
 it, and you can trace that error back to `validate_pdf`.
+
+## Step 2: Extract text page by page
+
+**What the pieces do**
+
+- `Page` in `documents/models.py` stores one page's text and number. The
+  `ForeignKey` links many pages to one document, and `related_name="pages"` is
+  what makes `document.pages.all()` work. The `UniqueConstraint` makes the
+  database itself refuse two copies of page 5.
+- `documents/services.py` holds the processing logic. It stays out of the admin
+  so that the background jobs in step 5 can call the same function.
+- `transaction.atomic()` makes deleting the old pages and saving the new ones a
+  single all-or-nothing change.
+- `ExtractionError` separates problems staff can act on, such as a damaged PDF,
+  from unexpected bugs. Bugs are logged, and staff see a general message.
+- `make_sample_handbook` is a management command: your own `manage.py` command.
+
+**Known limits:** scanned PDFs fail with a clear message because they contain
+images, not text. Text in tables and multi-column pages may come out in an odd
+order.
+
+**Run it**
+
+```bash
+source .venv/bin/activate
+python manage.py migrate
+python manage.py test
+python manage.py runserver
+```
+
+In the admin, upload `samples/sample_handbook.pdf`. The status should become
+**Ready**, and the document's page should list the text of all 6 pages.
+
+**Try this:** in `python manage.py shell`, run:
+
+```python
+from documents.models import Document
+document = Document.objects.first()
+document.pages.get(number=4).text
+```
+
+You should see the grading rules on page 4.

@@ -53,7 +53,12 @@ class AdminUploadTests(TestCase):
     def upload(self, name, content):
         return self.client.post(
             self.url,
-            {"title": "Handbook", "file": SimpleUploadedFile(name, content)},
+            {
+                "title": "Handbook",
+                "file": SimpleUploadedFile(name, content),
+                "pages-TOTAL_FORMS": "0",
+                "pages-INITIAL_FORMS": "0",
+            },
         )
 
     def test_real_pdf_is_saved(self):

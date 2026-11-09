@@ -33,3 +33,27 @@ class Document(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Page(models.Model):
+    """The text of one PDF page. Citations depend on its page number."""
+
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="pages",
+    )
+    number = models.PositiveIntegerField(help_text="Page number, starting at 1.")
+    text = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["document", "number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["document", "number"],
+                name="unique_page_number_per_document",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.document} (page {self.number})"
