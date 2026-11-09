@@ -10,6 +10,10 @@ def validate_pdf(file):
     A file's extension can be renamed, so we check the bytes at the start of
     the file. Every PDF has the signature "%PDF-" near the beginning.
     """
+    # A file that is already saved was checked when it was uploaded.
+    if getattr(file, "_committed", False):
+        return
+
     if file.size > MAX_PDF_SIZE_BYTES:
         raise ValidationError("The PDF must be 25 MB or smaller.")
 
