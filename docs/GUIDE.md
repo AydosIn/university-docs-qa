@@ -238,3 +238,24 @@ and refusals on the sample. It makes 21 paid API calls.
   one. `searchable_chunks` drops the old version only when the new one is
   `ready`, so there is no gap, and deleting the new one restores the old one.
   This is worked out by a query, so no extra flag can get out of sync.
+
+## Step 10: Student chat with source links
+
+Open <http://127.0.0.1:8000/> and sign in. Staff create student accounts in the
+admin under **Users**.
+
+**What the pieces do**
+
+- `assistant/views.py` handles asking. After a POST it redirects, which stops a
+  browser refresh from asking the same question twice (the Post/Redirect/Get
+  pattern).
+- `chunks_in(Collection.objects.visible_to(user))` limits search to what that
+  student may read. This is where access control is enforced for answers.
+- `documents/views.py` serves PDFs only after the same permission check. The
+  `#page=4` at the end of a link makes the browser's PDF viewer open that page.
+- Django templates escape text automatically, so a question containing HTML is
+  displayed as text and never runs.
+- `QUESTIONS_PER_HOUR` protects your API bill.
+
+**Try this:** create a second user and a restricted collection. Sign in as that
+user and try opening a restricted document's `/documents/<id>/file/` address.

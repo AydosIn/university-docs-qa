@@ -36,6 +36,13 @@ class Question(models.Model):
     def __str__(self):
         return self.text[:80]
 
+    def margin_pages(self):
+        """Citations with repeats of the same page removed."""
+        unique = {}
+        for citation in self.citations.all():
+            unique.setdefault((citation.document_title, citation.page_number), citation)
+        return list(unique.values())
+
 
 class Citation(models.Model):
     """A source for an answer.
@@ -49,6 +56,9 @@ class Citation(models.Model):
     document_title = models.CharField(max_length=255)
     page_number = models.PositiveIntegerField()
     excerpt = models.TextField()
+
+    class Meta:
+        ordering = ["id"]
 
     def __str__(self):
         return f"{self.document_title}, page {self.page_number}"

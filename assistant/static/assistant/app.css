@@ -1,0 +1,294 @@
+/* Rulebook: an exam blue book. The red margin line is the one bold element. */
+
+:root {
+  --cover: #bfd3ea;
+  --paper: #fafcff;
+  --ink: #14213d;
+  --ink-soft: #4a5a7a;
+  --rule: #d5e0ee;
+  --margin-red: #c8324b;
+
+  --margin-width: 5.5rem;
+  --sheet-width: 54rem;
+
+  --sans: "Commissioner", system-ui, sans-serif;
+  --serif: "Literata", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--cover);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.book {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--sheet-width);
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.cover {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 1rem calc(var(--margin-width) + 1.25rem);
+}
+
+.brand {
+  font-family: var(--serif);
+  font-size: 1.375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cover-nav {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* The sheet: the margin line runs the full height of the paper. */
+.sheet {
+  flex: 1;
+  padding-bottom: 2rem;
+  background:
+    linear-gradient(var(--margin-red), var(--margin-red))
+    var(--margin-width) 0 / 1.5px 100% no-repeat
+    var(--paper);
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: var(--margin-width) minmax(0, 1fr);
+}
+
+.margin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  padding: 2rem 0.75rem 0 0;
+}
+
+.page-mark {
+  color: var(--margin-red);
+  font-family: var(--serif);
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+a.page-mark:hover { text-decoration: underline; }
+
+.body {
+  max-width: 42rem;
+  padding: 2rem 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.question {
+  margin: 0 0 0.5rem;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.answer {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.answer-not_found,
+.answer-error {
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+}
+
+.searching::after {
+  content: "…";
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.2; }
+}
+
+.sources {
+  margin-top: 0.875rem;
+  font-size: 0.875rem;
+}
+
+.sources summary {
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.sources figure { margin: 0.875rem 0 0; }
+
+.sources blockquote {
+  margin: 0;
+  padding-left: 0.875rem;
+  border-left: 3px solid var(--cover);
+  font-family: var(--serif);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.sources figcaption {
+  margin-top: 0.25rem;
+  padding-left: 1rem;
+  color: var(--ink-soft);
+}
+
+.welcome {
+  margin: 0 0 0.75rem;
+  font-family: var(--serif);
+  font-size: clamp(1.875rem, 5vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.welcome-note {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+}
+
+.entry-empty .body,
+.sign-in { border-bottom: 0; }
+
+/* The ask box stays at the bottom while answers scroll. */
+.desk {
+  position: sticky;
+  bottom: 0;
+  padding: 0.75rem 1rem 1rem calc(var(--margin-width) + 1.25rem);
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.ask {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.625rem;
+  max-width: 40rem;
+}
+
+textarea,
+.sign-in input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1.5px solid var(--ink-soft);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+textarea {
+  max-height: 10rem;
+  resize: none;
+}
+
+button[type="submit"]:not(.link-button) {
+  flex: none;
+  padding: 0.625rem 1.25rem;
+  border: 0;
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled { opacity: 0.55; cursor: progress; }
+
+.notice {
+  max-width: 40rem;
+  margin: 0 0 0.625rem;
+  color: var(--margin-red);
+  font-size: 0.9375rem;
+}
+
+.notice-inline { margin-top: 1rem; }
+
+.sign-in {
+  display: grid;
+  gap: 0.375rem;
+  max-width: 22rem;
+  margin-top: 1.5rem;
+}
+
+.sign-in label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.sign-in input { margin-bottom: 0.75rem; }
+
+.sign-in button { justify-self: start; }
+
+@media (max-width: 40rem) {
+  :root { --margin-width: 3rem; }
+
+  .cover { padding-left: calc(var(--margin-width) + 0.75rem); }
+
+  .margin { padding-right: 0.5rem; }
+
+  .page-mark { font-size: 1.375rem; }
+
+  .body { padding: 1.5rem 1rem 1.25rem 0.75rem; }
+
+  .answer { font-size: 1.125rem; }
+
+  .desk { padding: 0.625rem 1rem 0.75rem calc(var(--margin-width) + 0.75rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .searching::after { animation: none; }
+}

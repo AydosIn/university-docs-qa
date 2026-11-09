@@ -1,0 +1,26 @@
+{% extends "assistant/base.html" %}
+
+{% block title %}Sign in to Rulebook{% endblock %}
+
+{% block content %}
+<main class="sheet">
+  <div class="entry">
+    <div class="margin"></div>
+    <div class="body">
+      <h1 class="welcome">Sign in to ask about the university's rules.</h1>
+      {% if form.errors %}
+        <p class="notice notice-inline" role="alert">That username and password don't match. Check them and sign in again.</p>
+      {% endif %}
+      <form class="sign-in" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <label for="id_username">Username</label>
+        <input id="id_username" name="username" autocomplete="username" required autofocus>
+        <label for="id_password">Password</label>
+        <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

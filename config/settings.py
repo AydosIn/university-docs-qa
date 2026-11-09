@@ -140,3 +140,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # The model that writes answers. The Anthropic SDK reads ANTHROPIC_API_KEY itself.
 LLM_MODEL = os.getenv('LLM_MODEL', 'claude-opus-5-5')
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'ask'
+LOGOUT_REDIRECT_URL = 'login'
+
+# Each answer costs money, so limit how many questions one person can ask.
+QUESTIONS_PER_HOUR = int(os.getenv('QUESTIONS_PER_HOUR', '30'))

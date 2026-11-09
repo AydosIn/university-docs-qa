@@ -1,0 +1,30 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Rulebook{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;600&family=Literata:opsz,wght@7..72,400;7..72,600&subset=cyrillic,latin-ext&display=swap">
+  <link rel="stylesheet" href="{% static 'assistant/app.css' %}">
+</head>
+<body>
+  <div class="book">
+    <header class="cover">
+      <a class="brand" href="{% url 'ask' %}">Rulebook</a>
+      {% if user.is_authenticated %}
+        <nav class="cover-nav">
+          {% block nav %}{% endblock %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="link-button" type="submit">Sign out</button>
+          </form>
+        </nav>
+      {% endif %}
+    </header>
+    {% block content %}{% endblock %}
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

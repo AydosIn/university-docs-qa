@@ -1,0 +1,67 @@
+{% extends "assistant/base.html" %}
+{% load static %}
+
+{% block nav %}{% if user.is_staff %}<a href="{% url 'admin:index' %}">Manage documents</a>{% endif %}{% endblock %}
+
+{% block content %}
+<main class="sheet" id="sheet">
+  {% for question in questions %}
+    <article class="entry">
+      <div class="margin">
+        {% for citation in question.margin_pages %}
+          {% if citation.document_id %}
+            <a class="page-mark" href="{% url 'document_file' citation.document_id %}#page={{ citation.page_number }}" target="_blank" rel="noopener" aria-label="Open {{ citation.document_title }}, page {{ citation.page_number }}">{{ citation.page_number }}</a>
+          {% else %}
+            <span class="page-mark">{{ citation.page_number }}</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="body">
+        <h2 class="question">{{ question.text }}</h2>
+        <p class="answer answer-{{ question.status }}">{{ question.answer|linebreaksbr }}</p>
+        {% if question.citations.all %}
+          <details class="sources">
+            <summary>Read the source text</summary>
+            {% for citation in question.citations.all %}
+              <figure>
+                <blockquote>{{ citation.excerpt|linebreaksbr }}</blockquote>
+                <figcaption>{{ citation.document_title }}, page {{ citation.page_number }}</figcaption>
+              </figure>
+            {% endfor %}
+          </details>
+        {% endif %}
+      </div>
+    </article>
+  {% empty %}
+    <article class="entry entry-empty">
+      <div class="margin"></div>
+      <div class="body">
+        <h1 class="welcome">Ask about the university's rules.</h1>
+        <p class="welcome-note">Attendance, exams, grades, deadlines. The numbers in this margin show which page each answer came from, and open that page when you select them.</p>
+      </div>
+    </article>
+  {% endfor %}
+
+  <article class="entry" id="pending" hidden>
+    <div class="margin"></div>
+    <div class="body">
+      <h2 class="question" id="pending-question"></h2>
+      <p class="answer searching" role="status">Searching the documents</p>
+    </div>
+  </article>
+</main>
+
+<div class="desk">
+  {% for message in messages %}
+    <p class="notice" role="alert">{{ message }}</p>
+  {% endfor %}
+  <form class="ask" method="post" id="ask-form">
+    {% csrf_token %}
+    <label class="visually-hidden" for="ask-text">Your question</label>
+    <textarea id="ask-text" name="text" rows="1" maxlength="500" required autofocus placeholder="How many absences are allowed?"></textarea>
+    <button type="submit" id="ask-button">Ask</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'assistant/app.js' %}"></script>{% endblock %}
