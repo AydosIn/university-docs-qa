@@ -171,3 +171,22 @@ python manage.py run_worker    # terminal 2
 
 **Try this:** upload a PDF with the worker stopped and watch it stay **Pending**.
 Then start the worker and refresh.
+
+## Step 6: Combined search
+
+Search runs two ways and merges the results.
+
+- **Vector search** in `_vector_ranking` finds similar meaning, even in another
+  language.
+- **Keyword search** in `_keyword_ranking` finds exact terms such as "XJ-42".
+  `GeneratedField` makes PostgreSQL maintain the `search_vector` column itself.
+- **`_fuse`** uses Reciprocal Rank Fusion. The two methods produce incomparable
+  scores, so it combines positions in each list instead.
+
+**Try this:** in `python manage.py shell`, with a document processed:
+
+```python
+from documents.search import search_chunks
+for c in search_chunks("How many classes can I skip?"):
+    print(c.page_number, c.text[:60])
+```

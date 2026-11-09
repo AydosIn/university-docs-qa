@@ -1,3 +1,5 @@
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from pgvector.django import HnswIndex, VectorField
@@ -76,6 +78,12 @@ class Chunk(models.Model):
     section = models.CharField(max_length=255, blank=True)
     text = models.TextField()
     embedding = VectorField(dimensions=EMBEDDING_DIMENSIONS, null=True, blank=True)
+    # PostgreSQL keeps this column up to date whenever the text changes.
+    search_vector = models.GeneratedField(
+        expression=SearchVector("text", config="english"),
+        output_field=SearchVectorField(),
+        db_persist=True,
+    )
 
     class Meta:
         ordering = ["document", "position"]
@@ -86,6 +94,7 @@ class Chunk(models.Model):
             ),
         ]
         indexes = [
+            GinIndex(name="chunk_search_vector_gin", fields=["search_vector"]),
             # Finds the closest embeddings without comparing against every row.
             HnswIndex(
                 name="chunk_embedding_hnsw",
