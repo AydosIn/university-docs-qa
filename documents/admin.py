@@ -1,7 +1,7 @@
-from django.contrib import admin, messages
+from django.contrib import admin
 
 from .models import Document, Page
-from .services import process_document
+from .services import requeue
 
 
 class PageInline(admin.StackedInline):
@@ -18,7 +18,7 @@ class PageInline(admin.StackedInline):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ["title", "status", "page_count", "uploaded_at"]
+    list_display = ["title", "status", "page_count", "error_message", "uploaded_at"]
     list_filter = ["status"]
     search_fields = ["title"]
     readonly_fields = ["status", "error_message", "page_count", "uploaded_at"]
@@ -27,13 +27,11 @@ class DocumentAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if not change or "file" in form.changed_data:
-            process_document(obj)
-            if obj.status == Document.Status.FAILED:
-                self.message_user(request, obj.error_message, level=messages.ERROR)
+        # New documents start as pending. A replaced file must be indexed again.
+        if change and "file" in form.changed_data:
+            requeue(Document.objects.filter(pk=obj.pk))
 
     @admin.action(description="Process selected documents again")
     def reprocess(self, request, queryset):
-        for document in queryset:
-            process_document(document)
-        self.message_user(request, f"Processed {queryset.count()} document(s).")
+        requeue(queryset)
+        self.message_user(request, "Queued for processing. The worker will pick them up.")

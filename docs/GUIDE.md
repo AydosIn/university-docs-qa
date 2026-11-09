@@ -146,3 +146,28 @@ Read which tests fail and why, then change it back.
 
 Documents processed before this step have no embeddings. Select them in the
 admin and run **Process selected documents again**.
+
+## Step 5: Process uploads in the background
+
+Embedding can take minutes, and nobody should wait on a loading page that long.
+Uploading now only saves the file. A separate process does the work:
+
+```bash
+python manage.py runserver     # terminal 1
+python manage.py run_worker    # terminal 2
+```
+
+**What the pieces do**
+
+- The database is the queue: `status="pending"` means "waiting". This project
+  does not use Celery because that needs a separate broker such as Redis, and
+  PostgreSQL can do this job well at this size.
+- `select_for_update(skip_locked=True)` in `claim_next_document` stops two
+  workers from taking the same document.
+- `processing_started_at` and `attempts` handle crashes. A document stuck for 15
+  minutes is retried, and after 3 attempts it is marked failed.
+- `_still_claimed` handles a file being replaced during processing, so old
+  results cannot overwrite the newer upload.
+
+**Try this:** upload a PDF with the worker stopped and watch it stay **Pending**.
+Then start the worker and refresh.

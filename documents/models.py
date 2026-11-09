@@ -27,6 +27,8 @@ class Document(models.Model):
         editable=False,
     )
     error_message = models.TextField(blank=True, editable=False)
+    attempts = models.PositiveSmallIntegerField(default=0, editable=False)
+    processing_started_at = models.DateTimeField(null=True, blank=True, editable=False)
     page_count = models.PositiveIntegerField(null=True, blank=True, editable=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

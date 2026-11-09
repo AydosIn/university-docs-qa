@@ -1,15 +1,23 @@
-"""Document processing. Admin pages and, later, background jobs call this code."""
+"""Document processing. The admin queues documents and the worker runs this code."""
 
 import logging
+from datetime import timedelta
 
 import pypdfium2 as pdfium
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 
 from .chunking import build_chunks
 from .embeddings import embed_passages
 from .models import Chunk, Document, Page
 
 logger = logging.getLogger(__name__)
+
+# A worker that crashes leaves its document in "processing". After this long,
+# another worker may take it over, up to MAX_ATTEMPTS times in total.
+STALE_AFTER = timedelta(minutes=15)
+MAX_ATTEMPTS = 3
 
 
 class ExtractionError(Exception):
@@ -45,12 +53,65 @@ def extract_pages(pdf_bytes):
     return texts
 
 
-def process_document(document):
-    """Extract a document's pages and record the result in its status."""
-    document.status = Document.Status.PROCESSING
-    document.error_message = ""
-    document.save(update_fields=["status", "error_message"])
+def requeue(documents):
+    """Send a queryset of documents back to the worker."""
+    documents.update(
+        status=Document.Status.PENDING,
+        error_message="",
+        attempts=0,
+        processing_started_at=None,
+    )
 
+
+def claim_next_document():
+    """Reserve the oldest waiting document for this worker, or return None.
+
+    SKIP LOCKED makes each worker pass over rows another worker is claiming,
+    so two workers can never pick up the same document.
+    """
+    while True:
+        stale_before = timezone.now() - STALE_AFTER
+        with transaction.atomic():
+            document = (
+                Document.objects.select_for_update(skip_locked=True)
+                .filter(
+                    Q(status=Document.Status.PENDING)
+                    | Q(
+                        status=Document.Status.PROCESSING,
+                        processing_started_at__lt=stale_before,
+                    )
+                )
+                .order_by("uploaded_at")
+                .first()
+            )
+            if document is None:
+                return None
+
+            if document.attempts >= MAX_ATTEMPTS:
+                document.status = Document.Status.FAILED
+                document.error_message = "Processing stopped unexpectedly several times."
+                document.save(update_fields=["status", "error_message"])
+                continue
+
+            document.status = Document.Status.PROCESSING
+            document.processing_started_at = timezone.now()
+            document.attempts += 1
+            document.save(update_fields=["status", "processing_started_at", "attempts"])
+            return document
+
+
+def _still_claimed(document):
+    """Lock the row and check that nobody queued or took it during the slow work."""
+    current = Document.objects.select_for_update().filter(pk=document.pk).first()
+    return (
+        current is not None
+        and current.status == Document.Status.PROCESSING
+        and current.processing_started_at == document.processing_started_at
+    )
+
+
+def process_document(document):
+    """Index a document claimed with claim_next_document."""
     try:
         with document.file.open("rb") as file:
             texts = extract_pages(file.read())
@@ -64,6 +125,8 @@ def process_document(document):
 
         # All or nothing: readers never see a half-replaced set of pages.
         with transaction.atomic():
+            if not _still_claimed(document):
+                return
             document.pages.all().delete()
             document.chunks.all().delete()
             Page.objects.bulk_create(
@@ -92,8 +155,10 @@ def process_document(document):
 
 
 def _mark_failed(document, message):
-    # Pages from an earlier version must not be used to answer questions.
     with transaction.atomic():
+        if not _still_claimed(document):
+            return
+        # Pages from an earlier version must not be used to answer questions.
         document.pages.all().delete()
         document.chunks.all().delete()
         document.status = Document.Status.FAILED
