@@ -147,3 +147,6 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Each answer costs money, so limit how many questions one person can ask.
 QUESTIONS_PER_HOUR = int(os.getenv('QUESTIONS_PER_HOUR', '30'))
+
+# Optional. Get a token from @BotFather on Telegram.
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')

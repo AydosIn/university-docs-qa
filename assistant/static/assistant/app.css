@@ -202,6 +202,32 @@ a.page-mark:hover { text-decoration: underline; }
 .entry-empty .body,
 .sign-in { border-bottom: 0; }
 
+.body-heading { padding-bottom: 0.75rem; }
+
+.insight-heading {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.insight-note {
+  margin: 0.25rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}
+
+.entry-row .margin { padding-top: 0.625rem; }
+
+.entry-row .page-mark { font-size: 1.375rem; }
+
+.entry-row .body { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+
+.insight-question {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 /* The ask box stays at the bottom while answers scroll. */
 .desk {
   position: sticky;

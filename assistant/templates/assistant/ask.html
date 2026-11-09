@@ -1,7 +1,7 @@
 {% extends "assistant/base.html" %}
 {% load static %}
 
-{% block nav %}{% if user.is_staff %}<a href="{% url 'admin:index' %}">Manage documents</a>{% endif %}{% endblock %}
+{% block nav %}{% if user.is_staff %}<a href="{% url 'insights' %}">What students ask</a><a href="{% url 'admin:index' %}">Manage documents</a>{% endif %}{% endblock %}
 
 {% block content %}
 <main class="sheet" id="sheet">

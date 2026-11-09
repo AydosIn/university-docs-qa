@@ -18,7 +18,7 @@ class PageInline(admin.StackedInline):
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
-    list_display = ["name", "description"]
+    list_display = ["name", "description", "telegram_enabled"]
     filter_horizontal = ["allowed_groups"]
 
 

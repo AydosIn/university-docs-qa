@@ -259,3 +259,19 @@ admin under **Users**.
 
 **Try this:** create a second user and a restricted collection. Sign in as that
 user and try opening a restricted document's `/documents/<id>/file/` address.
+
+## Step 11: Staff insights and Telegram bot
+
+**Insights** are at <http://127.0.0.1:8000/insights/>. `values().annotate(Count())`
+is Django's version of SQL `GROUP BY`, and `Lower(Trim("text"))` makes "Pass mark?"
+and " pass MARK? " count as one question.
+
+**Telegram:** get a token from @BotFather, add `TELEGRAM_BOT_TOKEN=...` to `.env`,
+tick **Available on Telegram** on a collection, and run:
+
+```bash
+python manage.py run_telegram_bot
+```
+
+Telegram users are not signed in, so the bot reads only collections staff have
+opted in. Anyone who finds the bot can use it, and each chat has an hourly limit.

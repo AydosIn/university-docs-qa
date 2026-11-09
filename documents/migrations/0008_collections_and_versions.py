@@ -5,6 +5,17 @@ import documents.models
 from django.db import migrations, models
 
 
+def move_documents_to_general(apps, schema_editor):
+    # Uses the historical models, so later changes to Collection cannot break this.
+    Collection = apps.get_model('documents', 'Collection')
+    Document = apps.get_model('documents', 'Document')
+    if Document.objects.exists():
+        general, _ = Collection.objects.get_or_create(name='General')
+        Document.objects.update(collection=general)
+    # PostgreSQL refuses to alter a table while foreign key checks are pending.
+    schema_editor.execute('SET CONSTRAINTS ALL IMMEDIATE')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -31,6 +42,17 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.AddField(
+            model_name='document',
+            name='collection',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='documents', to='documents.collection'),
+        ),
+        migrations.RunPython(move_documents_to_general, migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name='document',
+            name='collection',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='documents', to='documents.collection'),
+        ),
+        migrations.AlterField(
             model_name='document',
             name='collection',
             field=models.ForeignKey(default=documents.models.get_default_collection, on_delete=django.db.models.deletion.PROTECT, related_name='documents', to='documents.collection'),

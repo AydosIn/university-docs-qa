@@ -1,0 +1,54 @@
+{% extends "assistant/base.html" %}
+
+{% block title %}What students ask{% endblock %}
+
+{% block nav %}<a href="{% url 'ask' %}">Ask a question</a><a href="{% url 'admin:index' %}">Manage documents</a>{% endblock %}
+
+{% block content %}
+<main class="sheet">
+  <div class="entry">
+    <div class="margin"></div>
+    <div class="body">
+      <h1 class="welcome">What students ask</h1>
+      {% if total %}
+        <p class="welcome-note">In the last {{ days }} days, students asked {{ total }} question{{ total|pluralize }}. {{ answered }} answered, {{ not_found }} not in the documents, {{ errors }} failed.</p>
+      {% else %}
+        <p class="welcome-note">No questions in the last {{ days }} days. Questions appear here once students start asking.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if unanswered %}
+    <section>
+      <div class="entry">
+        <div class="margin"></div>
+        <div class="body body-heading">
+          <h2 class="insight-heading">Not in the documents</h2>
+          <p class="insight-note">These may show a missing or unclear policy. The number in the margin is how many times each was asked.</p>
+        </div>
+      </div>
+      {% for row in unanswered %}
+        <div class="entry entry-row">
+          <div class="margin"><span class="page-mark">{{ row.times }}</span></div>
+          <div class="body"><p class="insight-question">{{ row.normalized }}</p></div>
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if top_questions %}
+    <section>
+      <div class="entry">
+        <div class="margin"></div>
+        <div class="body body-heading"><h2 class="insight-heading">Asked most often</h2></div>
+      </div>
+      {% for row in top_questions %}
+        <div class="entry entry-row">
+          <div class="margin"><span class="page-mark">{{ row.times }}</span></div>
+          <div class="body"><p class="insight-question">{{ row.normalized }}</p></div>
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+</main>
+{% endblock %}

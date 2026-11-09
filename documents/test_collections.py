@@ -47,9 +47,6 @@ class VisibilityTests(TestCase):
         staff = User.objects.create_user("staff", is_staff=True)
         self.assertEqual(self.visible(staff), {self.open, self.restricted})
 
-    def test_open_to_all_excludes_restricted(self):
-        self.assertNotIn(self.restricted, Collection.objects.open_to_all())
-
     def test_search_stays_inside_visible_collections(self):
         make_ready_document("open doc", self.open)
         secret = make_ready_document("secret doc", self.restricted)

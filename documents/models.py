@@ -12,9 +12,6 @@ from .validators import validate_pdf
 
 
 class CollectionQuerySet(models.QuerySet):
-    def open_to_all(self):
-        return self.filter(allowed_groups__isnull=True)
-
     def visible_to(self, user):
         if user.is_staff:
             return self
@@ -34,6 +31,11 @@ class Collection(models.Model):
         Group,
         blank=True,
         help_text="Leave empty to let every signed-in user see this collection.",
+    )
+    telegram_enabled = models.BooleanField(
+        "available on Telegram",
+        default=False,
+        help_text="Anyone using the Telegram bot can get answers from this collection.",
     )
 
     objects = CollectionQuerySet.as_manager()

@@ -9,6 +9,7 @@ from documents import views as document_views
 
 urlpatterns = [
     path('', assistant_views.ask, name='ask'),
+    path('insights/', assistant_views.insights, name='insights'),
     path('documents/<int:pk>/file/', document_views.document_file, name='document_file'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),

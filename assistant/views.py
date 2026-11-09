@@ -2,7 +2,10 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from django.db.models.functions import Lower, Trim
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -14,6 +17,7 @@ from .models import Question
 from .services import answer_question
 
 HISTORY_LENGTH = 20
+INSIGHTS_DAYS = 30
 
 
 def _limit_reached(user):
@@ -46,3 +50,32 @@ def ask(request):
 
     questions = request.user.questions.prefetch_related("citations")[:HISTORY_LENGTH]
     return render(request, "assistant/ask.html", {"questions": reversed(list(questions))})
+
+
+def _most_asked(questions, limit):
+    return list(
+        questions.annotate(normalized=Lower(Trim("text")))
+        .values("normalized")
+        .annotate(times=Count("id"))
+        .order_by("-times", "normalized")[:limit]
+    )
+
+
+@staff_member_required
+def insights(request):
+    since = timezone.now() - timedelta(days=INSIGHTS_DAYS)
+    recent = Question.objects.filter(created_at__gte=since)
+    counts = dict(recent.order_by().values_list("status").annotate(Count("id")))
+    return render(
+        request,
+        "assistant/insights.html",
+        {
+            "days": INSIGHTS_DAYS,
+            "total": sum(counts.values()),
+            "answered": counts.get(Question.Status.ANSWERED, 0),
+            "not_found": counts.get(Question.Status.NOT_FOUND, 0),
+            "errors": counts.get(Question.Status.ERROR, 0),
+            "unanswered": _most_asked(recent.filter(status=Question.Status.NOT_FOUND), 30),
+            "top_questions": _most_asked(recent, 15),
+        },
+    )
